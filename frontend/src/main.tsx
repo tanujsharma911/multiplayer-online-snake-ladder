@@ -10,6 +10,7 @@ import Room from "./pages/Room.tsx";
 import Login from "./pages/Login.tsx";
 import Profile from "./pages/Profile.tsx";
 import Game from "./pages/Game.tsx";
+import AuthLayout from "./components/AuthLayout.tsx";
 
 const router = createBrowserRouter([
   {
@@ -26,7 +27,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/profile",
-        element: <Profile />,
+        element: (
+          <AuthLayout>
+            <Profile />
+          </AuthLayout>
+        ),
       },
       {
         path: "/game/offline",
@@ -34,11 +39,19 @@ const router = createBrowserRouter([
       },
       {
         path: "/game/random",
-        element: <Game />,
+        element: (
+          <AuthLayout>
+            <Game />
+          </AuthLayout>
+        ),
       },
       {
         path: "/room/:roomId",
-        element: <Room />,
+        element: (
+          <AuthLayout>
+            <Room />
+          </AuthLayout>
+        ),
       },
       {
         path: "/:other",

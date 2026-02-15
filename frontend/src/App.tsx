@@ -28,20 +28,21 @@ function App() {
 
     fetchUserData().finally(() => {
       setLoading(false);
-
-      if (user.isLoggedIn && socket) {
-        connect(socket);
-      } else {
-        disconnect();
-      }
     });
-
-    return () => {
-      if (user.isLoggedIn) {
-        disconnect();
-      }
-    };
   }, []);
+
+  useEffect(() => {
+    if (user.isLoggedIn && socket) {
+      connect(socket);
+      return;
+    }
+
+    disconnect();
+  }, [user.isLoggedIn, socket, connect, disconnect]);
+
+  useEffect(() => {
+    return () => disconnect();
+  }, [disconnect]);
 
   if (loading)
     return (

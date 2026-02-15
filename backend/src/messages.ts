@@ -1,2 +1,6 @@
 export const DICE_NUMBER = "dice_number"
 export const MOVE = "move"
+export const JOIN = "join"
+export const ADDED = "added"
+export const GAME_OVER = "game_over"
+export const ERROR = "error"

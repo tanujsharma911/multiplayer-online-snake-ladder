@@ -8,14 +8,11 @@ export const useSocket = () => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    if (!user.isLoggedIn) {
-      return;
-    }
+    if (!user.isLoggedIn) return;
 
     const ws = new WebSocket(WS_SERVER_URL);
     ws.onopen = () => {
       setSocket(ws);
-      console.log("WebSocket connected");
     };
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);

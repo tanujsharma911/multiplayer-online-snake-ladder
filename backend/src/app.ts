@@ -44,14 +44,19 @@ app.use("/auth", authRoute);
 
 const gameManager = new GameManager();
 
+// Note: Don't send message instantly after upgrade
+
 connection.on("connection", async (socket, req) => {
   const player = await authenticateSocket(req, socket);
 
   if (!player) {
+    console.log("Unauthorized");
     socket.send("Unauthorized");
     socket.close();
     return;
   }
+
+  console.log("📬 ", player.displayName, "joined");
 
   gameManager.addPlayer(player, socket);
 

@@ -1,19 +1,25 @@
+import type { WebSocket } from "ws";
+import { RED_ASCII } from "./contants.js";
+
 interface PlayerType {
   playerId: string;
   displayName: string;
-  avatar: string;
+  email: string;
+  avatar: string | undefined | null;
   socket: WebSocket;
 }
 
 export class Player {
   public playerId: string;
   public displayName: string;
-  public avatar: string;
+  public email: string;
+  public avatar: string | undefined | null;
   public socket: WebSocket;
 
-  constructor({ playerId, displayName, avatar, socket }: PlayerType) {
+  constructor({ playerId, displayName, email, avatar, socket }: PlayerType) {
     this.playerId = playerId;
     this.displayName = displayName;
+    this.email = email;
     this.avatar = avatar;
     this.socket = socket;
   }
@@ -26,6 +32,10 @@ class SocketManager {
   constructor() {
     this.playerId_gameId = new Map<string, string>();
     this.gameId_players = new Map<string, Map<string, Player>>();
+  }
+
+  public getGameId(playerId: string) {
+    return this.playerId_gameId.get(playerId);
   }
 
   public addPlayer(player: Player, gameId: string): void {
@@ -58,32 +68,20 @@ class SocketManager {
     }
   }
 
-  public broadcast({
-    gameId,
-    playerId,
-    message,
-  }: {
-    gameId?: string;
-    playerId?: string;
-    message: any;
-  }) {
-    let game_id = gameId;
+  public removeGame(gameId: string) {
+    // TODO
+  }
 
-    if (!game_id) {
-      game_id = this.playerId_gameId.get(playerId!);
-    }
-
-    if (!game_id) {
-      console.log("🔴 Game ID does not exist", game_id);
+  public broadcast(gameId: string, message: Record<any, any>) {
+    if (!this.gameId_players.has(gameId)) {
+      console.log(RED_ASCII, "SocketManager :: GameId not exist", gameId);
       return;
     }
 
-    if (!this.gameId_players.has(game_id)) return;
-
-    const players = this.gameId_players.get(game_id);
+    const players = this.gameId_players.get(gameId);
 
     if (!players) {
-      console.error("SocketManager :: Game exists without players");
+      console.log(RED_ASCII, "SocketManager :: Game exists without players");
       return;
     }
 
@@ -91,7 +89,15 @@ class SocketManager {
       player.socket.send(JSON.stringify(message));
     });
 
-    console.log("🟢 Message Broadcasted");
+    let playersNames = "";
+
+    [...players.values()].forEach((playerInstance, i) => {
+      playersNames += playerInstance.displayName;
+
+      if (i < [...players.values()].length - 1) playersNames += ", ";
+    });
+
+    console.log(`✉️  Message Broadcasted to ${playersNames}`);
   }
 }
 
