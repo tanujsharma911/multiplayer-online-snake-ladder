@@ -56,7 +56,7 @@ connection.on("connection", async (socket, req) => {
     return;
   }
 
-  console.log("📬 ", player.displayName, "joined");
+  console.log("📬 ", player.email, "joined");
 
   gameManager.addPlayer(player, socket);
 

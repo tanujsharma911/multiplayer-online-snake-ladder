@@ -52,6 +52,13 @@ export class GameManager {
             msg.game_of,
           );
 
+          const joinedGame = socketManager.getGameId(player.playerId);
+
+          if (joinedGame) {
+            console.log(RED_ASCII, "GameManager :: PLayer is already in game");
+            return;
+          }
+
           const similarGame = this.waitingGames.find(
             (game) => game.gameOf === msg.game_of && !game.gameStarted,
           );
@@ -63,20 +70,19 @@ export class GameManager {
 
             socketManager.addPlayer(player, gameInstance.gameId);
             gameInstance.addPlayer(player);
+            ``;
 
             this.waitingGames.push(gameInstance);
           } else {
-            similarGame.addPlayer(player);
+            socketManager.addPlayer(player, similarGame.gameId);
             console.log(
               "👉 Added to existing game :: gameId",
               similarGame.gameId,
             );
 
-            socketManager.addPlayer(player, similarGame.gameId);
+            similarGame.addPlayer(player);
 
-            if (similarGame.gameOf === similarGame.players.length) {
-              similarGame.startGame();
-
+            if (similarGame.gameStarted) {
               this.waitingGames = this.waitingGames.filter(
                 (game) => game.gameId !== similarGame.gameId,
               );

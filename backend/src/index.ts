@@ -14,7 +14,7 @@ connectDB().then(() => {
     );
     console.log(
       "\x1b[32m%s\x1b[0m",
-      `🔌  WebSocket Server is running on port http://localhost:${WS_PORT} ...`,
+      `🔌 WebSocket Server is running on port http://localhost:${WS_PORT} ...`,
     );
   });
 });

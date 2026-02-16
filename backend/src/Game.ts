@@ -58,6 +58,10 @@ class Game {
   public addPlayer(player: Player) {
     this.players.push(player);
 
+    if (this.gameOf === this.players.length) {
+      this.startGame();
+    }
+
     socketManager.broadcast(this.gameId, {
       type: ADDED,
       players: this.players.map((ply) => ({
@@ -67,6 +71,7 @@ class Game {
       })),
       gameOf: this.gameOf,
       gameStarted: this.gameStarted,
+      gameId: this.gameId,
     });
   }
 

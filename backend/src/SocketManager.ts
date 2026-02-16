@@ -92,7 +92,7 @@ class SocketManager {
     let playersNames = "";
 
     [...players.values()].forEach((playerInstance, i) => {
-      playersNames += playerInstance.displayName;
+      playersNames += playerInstance.email;
 
       if (i < [...players.values()].length - 1) playersNames += ", ";
     });
