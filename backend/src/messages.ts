@@ -1,6 +1,10 @@
-export const DICE_NUMBER = "dice_number"
-export const MOVE = "move"
-export const JOIN = "join"
-export const ADDED = "added"
-export const GAME_OVER = "game_over"
-export const ERROR = "error"
+export const DICE_NUMBER = "dice_number";
+export const SET_TURN = "set_turn";
+export const MOVE = "move";
+export const JOIN = "join";
+export const LOBBY_UPDATE = "lobby_update";
+export const GAME_UPDATE = "game_update";
+export const GET_GAME_UPDATE = "get_game_update";
+export const GAME_OVER = "game_over";
+export const LEAVE_LOBBY = "leave_lobby";
+export const ERROR = "error";

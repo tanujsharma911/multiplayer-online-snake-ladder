@@ -8,7 +8,9 @@ interface BroadProps {
     y?: number;
     label?: number;
     className?: string;
+    color?: string;
     id?: string;
+    playerId?: string;
   }[];
   boardData?: number[][];
 }
@@ -57,20 +59,28 @@ const Board = (props: BroadProps) => {
                 >
                   {players &&
                     players?.length > 0 &&
-                    players.map((player) => (
-                      <motion.div
-                        key={player.id}
-                        layoutId={"board" + player.id}
-                        transition={{
-                          type: "tween",
-                          stiffness: 100,
-                        }}
-                        className={cn(
-                          "w-full aspect-square rounded-full z-50 border-3 shadow-[4px_4px_0_rgba(1,1,1,0.2)]",
-                          player.className,
-                        )}
-                      ></motion.div>
-                    ))}
+                    players.map((player) => {
+                      // console.log(
+                      //   "Board :: playerId",
+                      //   player.id || player.playerId,
+                      // );
+                      return (
+                        <motion.div
+                          key={player.id || player.playerId}
+                          layoutId={`board-${player.id ?? player.playerId}`}
+                          transition={{
+                            type: "tween",
+                            stiffness: 100,
+                          }}
+                          className={cn(
+                            "w-full aspect-square rounded-full z-50 border-3 shadow-[4px_4px_0_rgba(1,1,1,0.2)]",
+                            player.className
+                              ? player.className
+                              : `bg-${player.color}-400 border-${player.color}-800`,
+                          )}
+                        ></motion.div>
+                      );
+                    })}
                 </div>
               </div>
             );

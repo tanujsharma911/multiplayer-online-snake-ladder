@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 interface stateType {
   isLoggedIn: boolean;
-  id: string | undefined;
+  _id: string | undefined;
   email: string | undefined;
   displayName: string | undefined;
   avatar: string | undefined;
@@ -16,7 +16,7 @@ interface storeType {
 
 const defaultState = {
   isLoggedIn: false,
-  id: undefined,
+  _id: undefined,
   email: undefined,
   displayName: undefined,
   avatar: undefined,

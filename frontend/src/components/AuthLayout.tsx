@@ -10,7 +10,7 @@ const AuthLayout = ({ children }: { children: ReactElement }) => {
     if (!user.isLoggedIn) {
       navigate(-1);
     }
-  }, [user]);
+  }, [user.isLoggedIn]);
 
   return <>{children}</>;
 };

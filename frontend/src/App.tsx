@@ -20,6 +20,7 @@ function App() {
       if (!data) return;
 
       if (data.loggedIn) {
+        console.log("👤 Login Successfull", data.user);
         login(data.user);
       } else {
         logout();

@@ -12,19 +12,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BOARD_DATA } from "@/lib/constants";
 
-const BOARD: number[][] = [
-  [-1, -1, -1, 76, -1, -1, -1, -1, -1, -1],
-  [-1, -1, -1, -1, -1, -1, 93, -1, -1, -1],
-  [-1, -1, -1, 42, -1, -1, -1, -1, -1, -1],
-  [-1, 98, -1, -1, -1, -1, -1, 32, -1, -1],
-  [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-  [-1, -1, -1, -1, -1, -1, -1, 75, -1, -1],
-  [-1, -1, -1, -1, -1, -1, 16, -1, -1, -1],
-  [-1, -1, -1, 56, -1, -1, -1, -1, -1, -1],
-  [-1, 4, -1, -1, -1, -1, -1, -1, -1, -1],
-  [-1, -1, -1, -1, -1, -1, -1, -1, 28, -1],
-];
 
 interface positionsType {
   id: string;
@@ -102,11 +91,11 @@ const GameOffline = () => {
           const { x, y } = labelToCoord(positions[turn]?.label);
 
           // Check ladder or snake
-          if (BOARD[y][x] !== -1) {
+          if (BOARD_DATA[y][x] !== -1) {
             setPositions((positions) => {
               const newPositions = [...positions];
 
-              newPositions[turn].label = BOARD[y][x];
+              newPositions[turn].label = BOARD_DATA[y][x];
 
               return newPositions;
             });
@@ -157,7 +146,7 @@ const GameOffline = () => {
   return gameStart ? (
     <div className="flex flex-col items-center mt-10 pb-10">
       <div>
-        <Board className="w-140" positions={positions} boardData={BOARD} />
+        <Board className="w-140" positions={positions} boardData={BOARD_DATA} />
 
         <div className="w-12 h-12 bg-zinc-100 flex justify-center items-center m-3 rounded-md">
           {diceRolling ? (

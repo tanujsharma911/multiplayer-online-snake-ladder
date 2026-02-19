@@ -70,7 +70,11 @@ const AppSidebar = () => {
           >
             <div className="flex flex-col justify-center">
               <Avatar className="outline-1">
-                <AvatarImage src={user.avatar} alt={user.displayName} />
+                <AvatarImage
+                  src={user.avatar}
+                  alt={user.displayName}
+                  referrerPolicy="no-referrer"
+                />
                 <AvatarFallback>{user.displayName?.[0]}</AvatarFallback>
               </Avatar>
             </div>

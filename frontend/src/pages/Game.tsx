@@ -1,8 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { useSocketStore } from "../store/socket";
 import { useEffect, useState } from "react";
-import { ADDED, JOIN } from "@/lib/messages";
+import {
+  LOBBY_UPDATE,
+  JOIN,
+  GAME_UPDATE,
+  LEAVE_LOBBY,
+  GAME_OVER,
+} from "@/lib/messages";
 import { useNavigate } from "react-router";
+import { User } from "lucide-react";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -10,7 +17,7 @@ const Game = () => {
   const { socket } = useSocketStore();
   const [waiting, setWaiting] = useState(false);
 
-  const [gameOf, setGameOf] = useState(false);
+  const [gameOf, setGameOf] = useState<number | null>(null);
   const [players, setPlayers] = useState<
     { displayName: string; email: string; avatar?: string }[]
   >([]);
@@ -21,24 +28,37 @@ const Game = () => {
     socket.send(JSON.stringify({ type: JOIN, game_of: game_of }));
   };
 
+  const leaveGame = () => {
+    if (!socket) return;
+
+    socket.send(JSON.stringify({ type: LEAVE_LOBBY }));
+  };
+
   useEffect(() => {
     if (!socket) return;
 
     const handleMessage = (event: MessageEvent) => {
       const msg = JSON.parse(event.data);
 
-      console.log(msg);
+      console.log("Lobby ::", msg);
 
       switch (msg.type) {
-        case ADDED:
+        case LOBBY_UPDATE:
           setWaiting(true);
           setPlayers(msg.players);
           setGameOf(msg.gameOf);
 
+          break;
+        case GAME_UPDATE:
+          setWaiting(false);
+          setPlayers(msg.players);
+          setGameOf(msg.gameOf);
           if (msg.gameStarted) {
-            // Redirect player to /room/4a819274-8414-48e5-aea9-bca53ef07c93
             navigate("/room/" + msg.gameId);
           }
+          break;
+        case LEAVE_LOBBY || GAME_OVER:
+          navigate("/");
           break;
       }
     };
@@ -47,6 +67,7 @@ const Game = () => {
 
     return () => {
       socket.removeEventListener("message", handleMessage);
+      leaveGame();
     };
   }, [socket]);
 
@@ -72,10 +93,17 @@ const Game = () => {
         </div>
       ) : (
         <div className="bg-white p-6 border rounded-xl shadow-sm w-full max-w-md">
-          <h2 className="text-xl font-semibold mb-4 text-center">
-            Waiting Lobby
-          </h2>
-          <p>Board of {gameOf}</p>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-center">
+              Match Making...
+            </h2>
+            <Button variant={"destructive"} onClick={leaveGame}>
+              Leave
+            </Button>
+          </div>
+          <p className="flex items-center gap-1 mb-2">
+            Game of <User className="size-4!" /> {gameOf}
+          </p>
 
           <ul className="space-y-3">
             {players.map((ply, i) => (
@@ -93,7 +121,7 @@ const Game = () => {
             ))}
           </ul>
 
-          <p className="text-sm text-zinc-500 mt-4 text-center">
+          <p className="text-sm text-zinc-500 mt-4 text-center animate-pulse">
             Waiting for players to join...
           </p>
         </div>

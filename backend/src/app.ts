@@ -63,7 +63,7 @@ connection.on("connection", async (socket, req) => {
   socket.on("close", () => {
     console.log(YELLOW_ASCII, "DISCONNECT");
 
-    gameManager.removePlayer(player._id);
+    gameManager.disconnectPlayer(player._id);
   });
 });
 

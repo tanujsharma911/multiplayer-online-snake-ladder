@@ -1,5 +1,6 @@
 import type { WebSocket } from "ws";
 import { RED_ASCII } from "./contants.js";
+import { ERROR, GAME_OVER } from "./messages.js";
 
 interface PlayerType {
   playerId: string;
@@ -14,7 +15,7 @@ export class Player {
   public displayName: string;
   public email: string;
   public avatar: string | undefined | null;
-  public socket: WebSocket;
+  public socket: WebSocket | null;
 
   constructor({ playerId, displayName, email, avatar, socket }: PlayerType) {
     this.playerId = playerId;
@@ -50,13 +51,13 @@ class SocketManager {
     players!.set(player.playerId, player);
   }
 
-  public removePlayer(playerId: string): void {
+  public removePlayer(playerId: string): string {
     const gameId = this.playerId_gameId.get(playerId);
-    if (!gameId) return;
+    if (!gameId) return ERROR;
 
     this.playerId_gameId.delete(playerId);
 
-    if (!this.gameId_players.has(gameId)) return;
+    if (!this.gameId_players.has(gameId)) return ERROR;
 
     const players = this.gameId_players.get(gameId);
 
@@ -64,12 +65,25 @@ class SocketManager {
 
     if (players?.size === 0) {
       this.gameId_players.delete(gameId);
+
       console.log("SocketManager :: Deleting game because of zero players");
+
+      return GAME_OVER;
     }
+
+    return "ok";
   }
 
   public removeGame(gameId: string) {
-    // TODO
+    if (!this.gameId_players.has(gameId)) return;
+
+    const players = this.gameId_players.get(gameId);
+
+    this.gameId_players.delete(gameId);
+
+    players?.forEach((player) => {
+      this.playerId_gameId.delete(player.playerId);
+    });
   }
 
   public broadcast(gameId: string, message: Record<any, any>) {
@@ -86,18 +100,28 @@ class SocketManager {
     }
 
     players.forEach((player, playerId) => {
-      player.socket.send(JSON.stringify(message));
+      if (player.socket && player.socket.readyState === player.socket.OPEN) {
+        player.socket.send(JSON.stringify(message));
+      }
     });
 
-    let playersNames = "";
+    // let playersEmails = Array.from(players.values())
+    //   .map((p) => p.email)
+    //   .join(", ");
 
-    [...players.values()].forEach((playerInstance, i) => {
-      playersNames += playerInstance.email;
+    // console.log(`✉️  Message Broadcasted to ${playersEmails}`);
+  }
 
-      if (i < [...players.values()].length - 1) playersNames += ", ";
-    });
+  public sendMessageTo(playerId: string, message: Record<any, any>) {
+    const gameId = this.playerId_gameId.get(playerId);
 
-    console.log(`✉️  Message Broadcasted to ${playersNames}`);
+    if (!gameId) return;
+
+    const player = this.gameId_players.get(gameId)?.get(playerId);
+
+    if (!player || !player.socket) return;
+
+    player.socket.send(JSON.stringify(message));
   }
 }
 
