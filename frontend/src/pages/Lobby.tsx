@@ -9,9 +9,9 @@ import {
   GAME_OVER,
 } from "@/lib/messages";
 import { useNavigate } from "react-router";
-import { User } from "lucide-react";
+import { Globe } from "lucide-react";
 
-const Game = () => {
+const Lobby = () => {
   const navigate = useNavigate();
 
   const { socket } = useSocketStore();
@@ -72,38 +72,45 @@ const Game = () => {
   }, [socket]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-3">
+    <div className="my-20 flex items-center flex-col gap-10 justify-center px-3">
       {!waiting ? (
-        <div className="bg-white p-6 border rounded-xl shadow-sm flex flex-col items-center gap-6 w-full max-w-md">
-          <h2 className="text-2xl font-semibold text-center">
-            Select Number Of Players
-          </h2>
-
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => joinGame(2)}>
-              Two
-            </Button>
-            <Button variant="outline" onClick={() => joinGame(3)}>
-              Three
-            </Button>
-            <Button variant="outline" onClick={() => joinGame(4)}>
-              Four
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white p-6 border rounded-xl shadow-sm w-full max-w-md">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-center">
-              Match Making...
+        <>
+          <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
+            Play With Random
+          </h1>
+          <div className="bg-white p-6 border rounded-xl flex flex-col items-center gap-6 w-full max-w-md">
+            <h2 className="text-2xl font-semibold text-center">
+              Select Number Of Players
             </h2>
+
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => joinGame(2)}>
+                Two
+              </Button>
+              <Button variant="outline" onClick={() => joinGame(3)}>
+                Three
+              </Button>
+              <Button variant="outline" onClick={() => joinGame(4)}>
+                Four
+              </Button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="bg-white p-6 border rounded-xl w-full max-w-md">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-semibold text-center">
+                Match Making
+              </h2>
+              <p className="flex items-center gap-1 opacity-75">
+                <Globe size={18} /> Public
+              </p>
+            </div>
             <Button variant={"destructive"} onClick={leaveGame}>
               Leave
             </Button>
           </div>
-          <p className="flex items-center gap-1 mb-2">
-            Game of <User className="size-4!" /> {gameOf}
-          </p>
 
           <ul className="space-y-3">
             {players.map((ply, i) => (
@@ -114,11 +121,19 @@ const Game = () => {
                 <img
                   src={ply.avatar}
                   alt={ply.displayName}
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover outline"
                 />
                 <span className="font-medium">{ply.displayName}</span>
               </li>
             ))}
+            {Array.from(
+              { length: (gameOf || 2) - players.length },
+              (_el, i) => i,
+            ).map(() => {
+              return (
+                <div className="h-12 w-full border rounded-lg border-dashed"></div>
+              );
+            })}
           </ul>
 
           <p className="text-sm text-zinc-500 mt-4 text-center animate-pulse">
@@ -130,4 +145,4 @@ const Game = () => {
   );
 };
 
-export default Game;
+export default Lobby;

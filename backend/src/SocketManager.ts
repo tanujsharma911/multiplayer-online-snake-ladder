@@ -104,12 +104,6 @@ class SocketManager {
         player.socket.send(JSON.stringify(message));
       }
     });
-
-    // let playersEmails = Array.from(players.values())
-    //   .map((p) => p.email)
-    //   .join(", ");
-
-    // console.log(`✉️  Message Broadcasted to ${playersEmails}`);
   }
 
   public sendMessageTo(playerId: string, message: Record<any, any>) {

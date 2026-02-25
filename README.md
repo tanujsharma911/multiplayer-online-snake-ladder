@@ -8,3 +8,7 @@
 - [] Handle all players disconnect from waiting & active game
 - [] Handle leave waiting & active game 
 - [] Create map for gameId which return game instance no matter whether it is in waiting or active
+
+## Note
+- Experimenting with modern ui with game ui mixing
+- 

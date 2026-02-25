@@ -3,6 +3,7 @@ import {
   GAME_OVER,
   GAME_UPDATE,
   GET_GAME_UPDATE,
+  LEAVE_GAME,
   MOVE,
   SET_TURN,
 } from "@/lib/messages";
@@ -16,12 +17,129 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import Board from "@/components/Board";
 import { cn } from "@/lib/utils";
 import RollDice from "@/components/ui/RollDice";
 import Dice from "@/components/ui/Dice";
 import { BOARD_DATA } from "@/lib/constants";
 import { useUser } from "@/store/user";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, GlobeX } from "lucide-react";
+
+const PlayerCard = (props: {
+  players?: ({
+    displayName: string;
+    email: string;
+    avatar?: string;
+    playerId: string;
+  } | null)[];
+  playingPlayers?: {
+    playerId: string;
+    label: number;
+    color: string;
+    playing: boolean;
+  }[];
+  currentUserId?: string;
+  diceRolling?: boolean;
+  isPlayerMoving?: boolean;
+  diceNumber?: number;
+  playerIndex: number;
+  turnIndex?: number;
+  handleRollDice?: () => void;
+}) => {
+  const {
+    players,
+    playingPlayers,
+    currentUserId,
+    diceRolling,
+    diceNumber,
+    playerIndex,
+    handleRollDice,
+    isPlayerMoving,
+    turnIndex,
+  } = props;
+
+  const turn = playerIndex === turnIndex;
+  const isCurrentUser = currentUserId === players?.[playerIndex]?.playerId;
+  const color =
+    playingPlayers?.find(
+      (pos) => pos.playerId === players?.[playerIndex]?.playerId,
+    )?.color || "gray";
+
+  return (
+    <div
+      className={cn(
+        "flex items-center",
+        playerIndex % 2 !== 0 && "flex-row-reverse",
+      )}
+    >
+      <div
+        className={cn(
+          "m-3 rounded-md",
+          turn && "ring-3 ring-offset-2  ring-yellow-500",
+          turn && isCurrentUser && "animate-bounce",
+        )}
+      >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative">
+              <img
+                src={
+                  players?.[playerIndex]?.avatar ||
+                  "https://api.dicebear.com/9.x/dylan/jpg"
+                }
+                referrerPolicy="no-referrer"
+                alt={players?.[playerIndex]?.displayName}
+                width={45}
+                height={45}
+                className={cn(
+                  "rounded-md",
+                  !players?.[playerIndex]?.playerId && "grayscale",
+                )}
+              />
+              {players?.[playerIndex]?.playerId ? (
+                <div
+                  className={cn(
+                    "absolute -bottom-2 -right-2 w-6 aspect-square rounded-full z-50 border-3 shadow-[4px_4px_0_rgba(1,1,1,0.2)]",
+                    `bg-${color}-400 border-${color}-800`,
+                  )}
+                ></div>
+              ) : (
+                <div className="bg-zinc-50 rounded-full absolute -bottom-2 -right-2">
+                  <GlobeX size={20} className="opacity-60" />
+                </div>
+              )}
+            </div>
+          </TooltipTrigger>
+          {players?.[playerIndex]?.playerId && (
+            <TooltipContent>
+              <p>{players?.[playerIndex]?.displayName}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </div>
+      {(turn || isPlayerMoving) && isCurrentUser && (
+        <div className="p-1 bg-zinc-200 rounded-md flex items-center">
+          {diceRolling ? (
+            <RollDice />
+          ) : (
+            <Dice
+              onClick={() => handleRollDice?.()}
+              number={diceNumber}
+              playerIndex={playerIndex}
+              turnIndex={turnIndex}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Room = () => {
   const navigate = useNavigate();
@@ -33,7 +151,7 @@ const Room = () => {
   const [gameOver, setGameOver] = useState(false);
   const [diceRolling, setDiceRolling] = useState(false);
   const [diceNumber, setDiceNumber] = useState(1);
-  const [playerIndex, setPlayerIndex] = useState(1);
+  const [isPlayerMoving, setIsPlayerMoving] = useState(false);
   const [turnIndex, setTurnIndex] = useState(0);
   const [players, setPlayers] = useState<
     ({
@@ -56,7 +174,14 @@ const Room = () => {
     if (!socket) return;
 
     setDiceRolling(true);
+    setIsPlayerMoving(true);
     socket.send(JSON.stringify({ type: MOVE }));
+  };
+
+  const handleLeave = () => {
+    if (!socket) return;
+
+    socket.send(JSON.stringify({ type: LEAVE_GAME }));
   };
 
   useEffect(() => {
@@ -73,10 +198,6 @@ const Room = () => {
         case GAME_UPDATE: {
           setPlayers(msg.players);
           setPlayingPlayers(msg.playingPlayers);
-          const playerIndex = msg.playingPlayers.findIndex(
-            (player: { playerId: string }) => player!.playerId === user._id,
-          );
-          setPlayerIndex(playerIndex);
           setTurnIndex(msg.turnIndex);
           break;
         }
@@ -96,6 +217,7 @@ const Room = () => {
 
                   return newPositions;
                 });
+                if (i === msg.steps) setIsPlayerMoving(false);
               }, i * 300);
             }
           } else {
@@ -110,6 +232,9 @@ const Room = () => {
           break;
         case SET_TURN:
           setTurnIndex(msg.turnIndex);
+          break;
+        case LEAVE_GAME:
+          navigate("/");
           break;
         case GAME_OVER:
           setGameOver(true);
@@ -127,67 +252,74 @@ const Room = () => {
 
   return (
     <div className="flex flex-col items-center mt-10 pb-10">
+      <div className="flex w-full px-10 mb-10">
+        <Button
+          onClick={handleLeave}
+          variant={"destructive"}
+          className="px-3 pr-4 py-2.5 font-sm"
+        >
+          <ChevronLeft className="size-6" /> Leave
+        </Button>
+      </div>
       <div>
+        {players.length >= 3 && (
+          <div className="flex justify-between">
+            <PlayerCard
+              playingPlayers={playingPlayers}
+              players={players}
+              playerIndex={2}
+              turnIndex={turnIndex}
+              diceNumber={diceNumber}
+              diceRolling={diceRolling}
+              handleRollDice={handleRollDice}
+              isPlayerMoving={isPlayerMoving}
+              currentUserId={user._id}
+            />
+            {players.length === 4 && (
+              <PlayerCard
+                playingPlayers={playingPlayers}
+                players={players}
+                playerIndex={3}
+                turnIndex={turnIndex}
+                diceNumber={diceNumber}
+                diceRolling={diceRolling}
+                handleRollDice={handleRollDice}
+                isPlayerMoving={isPlayerMoving}
+                currentUserId={user._id}
+              />
+            )}
+          </div>
+        )}
+
         <Board
-          className="w-140"
+          className="w-100 md:w-120 lg:w-140"
           positions={playingPlayers}
           boardData={BOARD_DATA}
         />
 
-        <div className="w-12 h-12 bg-zinc-100 flex justify-center items-center m-3 rounded-md">
-          {diceRolling ? (
-            <RollDice />
-          ) : (
-            <Dice
-              onClick={() => handleRollDice()}
-              number={diceNumber}
-              playerIndex={playerIndex}
-              turnIndex={turnIndex}
-            />
-          )}
-        </div>
-
-        <p className="mb-2">Currently Playing</p>
-        <div className="flex flex-col gap-3">
-          {[...playingPlayers.map((player) => ({ ...player }))]
-            .sort((a, b) => {
-              return b.label - a.label; // highest first
-            })
-            .map((player, i) => {
-              return (
-                <div
-                  key={player.playerId || i}
-                  className="bg-zinc-100 flex items-center p-2 gap-3 rounded-md"
-                >
-                  <div
-                    className={cn(
-                      "w-6 aspect-square rounded-full z-50 border-3 shadow-[4px_4px_0_rgba(1,1,1,0.2)]",
-                      `bg-${player.color}-400 border-${player.color}-800`,
-                    )}
-                  />
-                  <p className="text-xl font-medium">
-                    {
-                      players.find((p) => player.playerId === p?.playerId)
-                        ?.displayName
-                    }
-                  </p>
-                </div>
-              );
-            })}
-        </div>
-
-        <div className="font-mono p-2 my-4 bg-zinc-200">
-          turn: {turnIndex}
-          <br />
-          your index: {playerIndex}
-          <br />
-          game over: {gameOver}
-          <br />
-          dice rolling: {diceRolling}
-          <br />
-          dice number: {diceNumber}
-          <br />
-          your id: {user._id}
+        <div className="flex justify-between">
+          <PlayerCard
+            playingPlayers={playingPlayers}
+            players={players}
+            playerIndex={0}
+            turnIndex={turnIndex}
+            diceNumber={diceNumber}
+            diceRolling={diceRolling}
+            handleRollDice={handleRollDice}
+            isPlayerMoving={isPlayerMoving}
+            currentUserId={user._id}
+          />
+          <PlayerCard
+            playingPlayers={playingPlayers}
+            players={players}
+            playerIndex={1}
+            turnIndex={turnIndex}
+            diceNumber={diceNumber}
+            diceRolling={diceRolling}
+            handleRollDice={handleRollDice}
+            isPlayerMoving={isPlayerMoving}
+            currentUserId={user._id}
+          />
         </div>
 
         <Dialog
@@ -200,7 +332,9 @@ const Room = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Game Over</DialogTitle>
-              <DialogDescription>Close to play again</DialogDescription>
+              <DialogDescription>
+                Click the close button for going to home page
+              </DialogDescription>
             </DialogHeader>
           </DialogContent>
         </Dialog>

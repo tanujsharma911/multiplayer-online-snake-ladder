@@ -1,4 +1,6 @@
 export const JOIN = "join";
+export const JOIN_ROOM = "join_room";
+export const CREATE_ROOM = "create_room";
 export const MOVE = "move";
 export const DICE_NUMBER = "dice_number";
 export const SET_TURN = "set_turn";
@@ -7,3 +9,4 @@ export const GAME_UPDATE = "game_update";
 export const GAME_OVER = "game_over";
 export const GET_GAME_UPDATE = "get_game_update";
 export const LEAVE_LOBBY = "leave_lobby";
+export const LEAVE_GAME = "leave_game";

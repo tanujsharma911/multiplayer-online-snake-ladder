@@ -2,10 +2,14 @@ import type { WebSocket } from "ws";
 import Game from "./Game.js";
 import { Player, socketManager } from "./SocketManager.js";
 import {
+  CREATE_ROOM,
   GAME_OVER,
   GET_GAME_UPDATE,
   JOIN,
+  JOIN_ROOM,
+  LEAVE_GAME,
   LEAVE_LOBBY,
+  LOBBY_UPDATE,
   MOVE,
 } from "./messages.js";
 import { RED_ASCII } from "./contants.js";
@@ -20,11 +24,13 @@ type playerType = {
 export class GameManager {
   public activeGames: Game[];
   public waitingGames: Game[];
+  public privateWaitingGames: Game[];
   public players: Player[];
 
   constructor() {
     this.activeGames = [];
     this.waitingGames = [];
+    this.privateWaitingGames = [];
     this.players = [];
   }
 
@@ -45,7 +51,8 @@ export class GameManager {
 
       const game =
         this.waitingGames.find((g) => g.gameId === gameId) ||
-        this.activeGames.find((g) => g.gameId === gameId);
+        this.activeGames.find((g) => g.gameId === gameId) ||
+        this.privateWaitingGames.find((g) => g.gameId === gameId);
 
       if (game) {
         game.sendUpdate();
@@ -118,7 +125,6 @@ export class GameManager {
 
           socketManager.addPlayer(player, gameInstance.gameId);
           gameInstance.addPlayer(player);
-          ``;
 
           this.waitingGames.push(gameInstance);
         } else {
@@ -155,7 +161,6 @@ export class GameManager {
         }
 
         game.move(player.playerId).then((status) => {
-
           if (status === GAME_OVER) {
             this.removeGame(game);
           }
@@ -181,7 +186,9 @@ export class GameManager {
       else if (msg.type === LEAVE_LOBBY) {
         const gameId = socketManager.getGameId(player.playerId);
 
-        const game = this.waitingGames.find((g) => g.gameId === gameId);
+        const game =
+          this.waitingGames.find((g) => g.gameId === gameId) ||
+          this.privateWaitingGames.find((g) => g.gameId === gameId);
 
         if (!game) {
           // Game maybe in Active game
@@ -194,7 +201,102 @@ export class GameManager {
 
         if (status === GAME_OVER) {
           this.removeGame(game);
-          socketManager.removeGame(game.gameId);
+          console.log(`GameManager :: Game ${game.gameId} ended`);
+        }
+
+        console.log(`👉 ${player.email} left lobby gameId: ${game.gameId}`);
+      }
+
+      // Player want to leave a active game
+      else if (msg.type === LEAVE_GAME) {
+        const gameId = socketManager.getGameId(player.playerId);
+
+        if (!gameId) {
+          console.log(
+            RED_ASCII,
+            "GameManager :: Player want to leave a game but that does not exist",
+          );
+          return;
+        }
+
+        const game = this.activeGames.find((g) => g.gameId === gameId);
+
+        if (!game) {
+          console.log(
+            RED_ASCII,
+            "GameManager :: Player want to leave a game but not in a game",
+          );
+          return;
+        }
+
+        socketManager.sendMessageTo(player.playerId, { type: LEAVE_GAME });
+        const status = game.removePlayer(player.playerId);
+        socketManager.removePlayer(player.playerId);
+
+        if (status === GAME_OVER) {
+          this.removeGame(game);
+          console.log(`GameManager :: Game ${game.gameId} ended`);
+        }
+
+        console.log(`👉 ${player.email} left gameId: ${game.gameId}`);
+      }
+
+      // Player wants to create a private game
+      else if (msg.type === CREATE_ROOM) {
+        const existingGameId = socketManager.getGameId(player.playerId);
+
+        if (existingGameId) {
+          console.log(
+            RED_ASCII,
+            "GameManager :: Player want to create private game but already in a game",
+          );
+          return;
+        }
+
+        const privateGame = new Game(msg.gameOf);
+
+        this.privateWaitingGames.push(privateGame);
+
+        socketManager.addPlayer(player, privateGame.gameId);
+        privateGame.addPlayer(player);
+
+        console.log(`👉 ${player.email} created gameId: ${privateGame.gameId}`);
+      }
+
+      // Player wants to join a private game
+      else if (msg.type === JOIN_ROOM) {
+        const joinedExistingGameId = socketManager.getGameId(player.playerId);
+
+        if (joinedExistingGameId) {
+          console.log(
+            RED_ASCII,
+            "GameManager :: Player want to join private game but is already in a game",
+          );
+          return;
+        }
+
+        const privateGame = this.privateWaitingGames.find(
+          (g) => g.gameId === msg.gameId,
+        );
+
+        if (!privateGame) {
+          console.log(
+            RED_ASCII,
+            "GameManager :: Private game not found",
+            msg.gameId,
+          );
+          return;
+        }
+
+        socketManager.addPlayer(player, privateGame.gameId);
+        privateGame.addPlayer(player);
+
+        if (privateGame.gameStarted) {
+          this.privateWaitingGames = this.privateWaitingGames.filter(
+            (g) => g.gameId !== privateGame.gameId,
+          );
+
+          this.activeGames.push(privateGame);
         }
       }
     });

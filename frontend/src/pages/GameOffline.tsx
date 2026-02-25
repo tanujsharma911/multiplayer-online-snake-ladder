@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { BOARD_DATA } from "@/lib/constants";
 
-
 interface positionsType {
   id: string;
   label: number;
@@ -199,9 +198,12 @@ const GameOffline = () => {
       </div>
     </div>
   ) : (
-    <div className="bg-zinc-100 p-2 py-8 border rounded-lg flex gap-4 max-w-4xl mx-3 md:mx-auto">
-      <div className="flex flex-col justify-between items-center w-full">
-        <h2 className="scroll-m-20 mb-8 text-3xl font-semibold tracking-tight first:mt-0">
+    <div className="flex items-center justify-center flex-col gap-10 min-h-80">
+      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
+        Play Offline
+      </h1>
+      <div className="bg-white p-6 border rounded-xl flex flex-col items-center gap-6 w-full max-w-md">
+        <h2 className="text-2xl font-semibold text-center">
           Select Number Of Players
         </h2>
 

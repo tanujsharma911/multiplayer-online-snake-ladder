@@ -33,7 +33,7 @@ class Game {
   public startedAt: Date = new Date(Date.now());
 
   constructor(gameOf: number) {
-    this.gameId = crypto.randomUUID();
+    this.gameId = crypto.randomUUID().slice(0, 4);
     this.gameStarted = false;
     this.gameEnded = false;
     this.gameOf = gameOf;

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Link, Outlet } from "react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from "./components/AppSidebar";
 import { useUser } from "./store/user";
@@ -6,8 +6,11 @@ import axios from "./api/axios";
 import { useEffect, useState } from "react";
 import { useSocket } from "./hooks/useSocket";
 import { useSocketStore } from "./store/socket";
+import { useIsMobile } from "./hooks/use-mobile";
+import { Toaster } from "sonner";
 
 function App() {
+  const isMobile = useIsMobile();
   const { user, login, logout } = useUser();
   const { connect, disconnect } = useSocketStore();
   const [loading, setLoading] = useState(true);
@@ -56,9 +59,20 @@ function App() {
     <SidebarProvider>
       <AppSidebar />
       <main className="w-full">
-        <SidebarTrigger className="m-2" />
+        {isMobile && (
+          <div className="flex justify-between items-center">
+            <Link
+              to={"/"}
+              className="title-font text-2xl flex items-baseline justify-center m-1 ml-3 gap-1 motion-preset-t"
+            >
+              <img src="/logo.png" alt="Snake and ladder" width={80} />
+            </Link>
+            <SidebarTrigger className="m-2 bg-zinc-100 h-full" />
+          </div>
+        )}
         <Outlet />
       </main>
+      <Toaster richColors />
     </SidebarProvider>
   );
 }

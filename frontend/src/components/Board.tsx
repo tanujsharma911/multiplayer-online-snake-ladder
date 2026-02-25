@@ -60,10 +60,6 @@ const Board = (props: BroadProps) => {
                   {players &&
                     players?.length > 0 &&
                     players.map((player) => {
-                      // console.log(
-                      //   "Board :: playerId",
-                      //   player.id || player.playerId,
-                      // );
                       return (
                         <motion.div
                           key={player.id || player.playerId}

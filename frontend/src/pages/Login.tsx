@@ -10,11 +10,11 @@ const Login = () => {
   };
 
   return (
-    <div className="h-100 flex justify-center">
+    <div className="h-100 flex justify-center items-center">
       <div className="py-8 lg:mx-16">
-        <h3 className="scroll-m-20 text-2xl mb-10 text-center font-semibold tracking-tight">
+        <h1 className="mb-10 scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
           Login
-        </h3>
+        </h1>
 
         <Button onClick={handleLogin}>
           <FaGoogle />

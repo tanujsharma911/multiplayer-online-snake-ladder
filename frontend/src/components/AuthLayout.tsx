@@ -1,6 +1,7 @@
 import { useUser } from "@/store/user";
 import { useEffect, type ReactElement } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 const AuthLayout = ({ children }: { children: ReactElement }) => {
   const { user } = useUser();
@@ -8,7 +9,8 @@ const AuthLayout = ({ children }: { children: ReactElement }) => {
 
   useEffect(() => {
     if (!user.isLoggedIn) {
-      navigate(-1);
+      navigate("/login");
+      toast.error("Please login to continue");
     }
   }, [user.isLoggedIn]);
 
