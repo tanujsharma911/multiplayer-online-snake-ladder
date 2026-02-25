@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+   server:
+      build: ./backend
+      container_name: snakes-ladders-server
+      ports:
+         - "4000:4000"
+         - "8000:8000"
+      env_file:
+         - ./backend/env
+      restart: unless-stopped
