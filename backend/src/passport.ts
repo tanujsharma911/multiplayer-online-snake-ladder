@@ -1,6 +1,9 @@
 import passport from "passport";
 import { type Profile } from "passport-google-oauth20";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 import { User } from "./models/user.model.js";
 import mongoose from "mongoose";
@@ -22,7 +25,7 @@ export const initPassport = () => {
       {
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: `http://localhost:${process.env.PORT}/auth/google/callback`,
+        callbackURL: `http://localhost:4000/auth/google/callback`,
         scope: ["openid", "profile", "email"],
       },
       async function verify(
@@ -31,7 +34,6 @@ export const initPassport = () => {
         profile: Profile,
         cb: any,
       ) {
-
         const user = {
           displayName: profile.displayName,
           email: profile.emails?.[0]?.value || "",

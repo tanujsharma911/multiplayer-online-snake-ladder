@@ -3,10 +3,7 @@ import { FaGoogle } from "react-icons/fa";
 
 const Login = () => {
   const handleLogin = () => {
-    window.open(
-      `${import.meta.env.VITE_SERVER_URL}/auth/login/google`,
-      "_self",
-    );
+    window.open(`${import.meta.env.VITE_SERVER_URL}/auth/login/google`, "_self");
   };
 
   return (

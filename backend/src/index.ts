@@ -5,12 +5,12 @@ import http from "http";
 import { WebSocketServer } from "ws";
 import { authenticateSocket } from "./middleware/session.middleware.js";
 import { GameManager } from "./GameManager.js";
-import { YELLOW_ASCII } from "./contants.js";
+import { GREEN_ASCII, YELLOW_ASCII } from "./contants.js";
 
 dotenv.config();
 
 connectDB().then(() => {
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 4000;
 
   const server = http.createServer(app);
 
@@ -21,6 +21,8 @@ connectDB().then(() => {
   // Note: Don't send message instantly after upgrade
 
   wss.on("connection", async (socket, req) => {
+    console.log(GREEN_ASCII, "CONNECTED");
+
     const player = await authenticateSocket(req, socket);
 
     if (!player) {
@@ -39,7 +41,7 @@ connectDB().then(() => {
     });
   });
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(
       "\x1b[32m%s\x1b[0m",
       `⚙️  Server is running on port http://localhost:${PORT} ...`,

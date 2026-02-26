@@ -129,9 +129,12 @@ const Lobby = () => {
             {Array.from(
               { length: (gameOf || 2) - players.length },
               (_el, i) => i,
-            ).map(() => {
+            ).map((_, i) => {
               return (
-                <div className="h-12 w-full border rounded-lg border-dashed"></div>
+                <div
+                  key={i}
+                  className="h-12 w-full border rounded-lg border-dashed"
+                ></div>
               );
             })}
           </ul>

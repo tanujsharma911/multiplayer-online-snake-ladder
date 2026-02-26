@@ -2,7 +2,7 @@ import { useUser } from "@/store/user";
 import { useEffect, useState } from "react";
 
 export const useSocket = () => {
-  const WS_SERVER_URL = import.meta.env.VITE_WS_SERVER_URL;
+  const WS_SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
   const { user } = useUser();
   const [socket, setSocket] = useState<WebSocket | null>(null);
