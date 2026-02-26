@@ -10,7 +10,6 @@ import {
 } from "./messages.js";
 import { Player, socketManager } from "./SocketManager.js";
 import { labelToCoord } from "./utils.js";
-import type { WebSocket } from "ws";
 
 const playersColors = ["red", "green", "yellow", "sky"];
 

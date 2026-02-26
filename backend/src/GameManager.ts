@@ -9,7 +9,6 @@ import {
   JOIN_ROOM,
   LEAVE_GAME,
   LEAVE_LOBBY,
-  LOBBY_UPDATE,
   MOVE,
 } from "./messages.js";
 import { RED_ASCII } from "./contants.js";

@@ -1,4 +1,4 @@
-export const DB_NAME = "learn_passport";
+export const DB_NAME = "snakes_and_ladders";
 export const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000;
 
 export const RED_ASCII = "\x1b[31m%s\x1b[0m";
