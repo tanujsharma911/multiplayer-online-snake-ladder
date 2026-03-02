@@ -1,4 +1,4 @@
-import type { WebSocket } from "ws";
+import { Socket } from "socket.io";
 import Game from "./Game.js";
 import { Player, socketManager } from "./SocketManager.js";
 import {
@@ -33,7 +33,7 @@ export class GameManager {
     this.players = [];
   }
 
-  public addPlayer(player: playerType, socket: WebSocket) {
+  public addPlayer(player: playerType, socket: Socket) {
     const playerExist = this.players.find((ply) => ply.playerId === player._id);
 
     if (playerExist) {
@@ -81,7 +81,7 @@ export class GameManager {
       return;
     }
 
-    player.socket?.close();
+    player.socket?.disconnect();
     player.socket = null;
   }
 

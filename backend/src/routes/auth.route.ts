@@ -12,7 +12,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    successRedirect: process.env.CLIENT_URL || "http://localhost:5173",
+    successRedirect: process.env.CLIENT_URL,
     failureRedirect: "/login/failed",
   }),
 );

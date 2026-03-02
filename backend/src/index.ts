@@ -2,10 +2,14 @@ import connectDB from "./db/index.js";
 import app from "./app.js";
 import dotenv from "dotenv";
 import http from "http";
-import { WebSocketServer } from "ws";
-import { authenticateSocket } from "./middleware/session.middleware.js";
+import { Server, Socket } from "socket.io";
+import {
+  authenticateSocket,
+  sessionParser,
+} from "./middleware/session.middleware.js";
 import { GameManager } from "./GameManager.js";
 import { GREEN_ASCII, YELLOW_ASCII } from "./contants.js";
+import passport from "passport";
 
 dotenv.config();
 
@@ -14,29 +18,39 @@ connectDB().then(() => {
 
   const server = http.createServer(app);
 
-  const wss = new WebSocketServer({ server });
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.CLIENT_URL,
+      credentials: true,
+    },
+  });
 
   const gameManager = new GameManager();
 
-  // Note: Don't send message instantly after upgrade
+  io.use((socket, next) => {
+    sessionParser(socket.request as any, {} as any, (err: any) => {
+      if (err) return next(err);
 
-  wss.on("connection", async (socket, req) => {
-    console.log(GREEN_ASCII, "CONNECTED");
+      passport.initialize()(socket.request as any, {} as any, (err2: any) => {
+        if (err2) return next(err2);
 
-    const player = await authenticateSocket(req, socket);
+        passport.session()(socket.request as any, {} as any, next as any);
+      });
+    });
+  });
 
-    if (!player) {
-      console.log("Unauthorized");
-      socket.send("Unauthorized");
-      socket.close();
+  io.on("connection", async (socket: Socket) => {
+    const user = socket.request as any;
+    const player = user.user;
+
+    if (!user.isAuthenticated()) {
+      socket.emit("message", "Unauthorized");
       return;
     }
 
     gameManager.addPlayer(player, socket);
 
-    socket.on("close", () => {
-      console.log(YELLOW_ASCII, "DISCONNECT");
-
+    socket.on("disconnect", () => {
       gameManager.disconnectPlayer(player._id);
     });
   });

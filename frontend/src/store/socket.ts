@@ -1,13 +1,14 @@
+import type { Socket } from "socket.io-client";
 import { create } from "zustand";
 
 interface storeType {
-  socket: WebSocket | null;
-  connect: (payload: WebSocket) => void;
+  socket: Socket | null;
+  connect: (payload: Socket) => void;
   disconnect: () => void;
 }
 
 export const useSocketStore = create<storeType>((set) => ({
   socket: null,
-  connect: (payload: WebSocket) => set({ socket: payload }),
+  connect: (payload: Socket) => set({ socket: payload }),
   disconnect: () => set({ socket: null }),
 }));

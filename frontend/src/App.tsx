@@ -18,15 +18,19 @@ function App() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const data = await axios.get("/auth/me").then((res) => res.data);
+      try {
+        const data = await axios.get("/auth/me").then((res) => res.data);
 
-      if (!data) return;
+        if (!data) return;
 
-      if (data.loggedIn) {
-        console.log("👤 Login Successfull", data.user);
-        login(data.user);
-      } else {
-        logout();
+        if (data.loggedIn) {
+          console.log("👤 Login Successfull", data.user);
+          login(data.user);
+        } else {
+          logout();
+        }
+      } catch (error) {
+        console.error("Error fetching user data", error);
       }
     };
 

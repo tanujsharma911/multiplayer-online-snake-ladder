@@ -1,13 +1,13 @@
-import type { WebSocket } from "ws";
 import { RED_ASCII } from "./contants.js";
 import { ERROR, GAME_OVER } from "./messages.js";
+import type { Socket } from "socket.io";
 
 interface PlayerType {
   playerId: string;
   displayName: string;
   email: string;
   avatar: string | undefined | null;
-  socket: WebSocket;
+  socket: Socket;
 }
 
 export class Player {
@@ -15,7 +15,7 @@ export class Player {
   public displayName: string;
   public email: string;
   public avatar: string | undefined | null;
-  public socket: WebSocket | null;
+  public socket: Socket | null;
 
   constructor({ playerId, displayName, email, avatar, socket }: PlayerType) {
     this.playerId = playerId;
@@ -100,7 +100,7 @@ class SocketManager {
     }
 
     players.forEach((player, playerId) => {
-      if (player.socket && player.socket.readyState === player.socket.OPEN) {
+      if (player.socket && player.socket.connected) {
         player.socket.send(JSON.stringify(message));
       }
     });

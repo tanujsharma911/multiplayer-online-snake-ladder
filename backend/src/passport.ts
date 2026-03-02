@@ -25,7 +25,7 @@ export const initPassport = () => {
       {
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: `http://localhost:4000/auth/google/callback`,
+        callbackURL: `http://localhost:${process.env.PORT ?? 4000}/auth/google/callback`,
         scope: ["openid", "profile", "email"],
       },
       async function verify(
@@ -60,7 +60,7 @@ export const initPassport = () => {
   });
 
   passport.deserializeUser(async (id: string, cb) => {
-    const userData = await User.findById(new mongoose.Types.ObjectId(id));
+    const userData = await User.findById(id);
 
     process.nextTick(() => {
       return cb(null, userData);

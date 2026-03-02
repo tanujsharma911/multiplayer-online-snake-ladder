@@ -1,28 +1,29 @@
 import { useUser } from "@/store/user";
 import { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
-export const useSocket = () => {
+export const useSocket = (): Socket | null => {
   const WS_SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
   const { user } = useUser();
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     if (!user.isLoggedIn) return;
 
-    const ws = new WebSocket(WS_SERVER_URL);
-    ws.onopen = () => {
-      setSocket(ws);
-    };
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-    ws.onclose = () => {
+    const socket = io(WS_SERVER_URL, { withCredentials: true });
+    socket.on("connect", () => {
+      setSocket(socket);
+    });
+    socket.on("disconnect", () => {
       setSocket(null);
-    };
+    });
+    socket.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
 
     return () => {
-      ws.close();
+      socket.disconnect();
     };
   }, [user]);
 

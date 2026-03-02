@@ -2,7 +2,7 @@ import session from "express-session";
 import { COOKIE_MAX_AGE } from "../contants.js";
 import express from "express";
 import { User } from "../models/user.model.js";
-import type { WebSocket } from "ws";
+import type { Socket } from "socket.io";
 
 // Express Session Middleware
 export const sessionParser: express.RequestHandler = session({
@@ -12,23 +12,15 @@ export const sessionParser: express.RequestHandler = session({
   cookie: { secure: false, maxAge: COOKIE_MAX_AGE },
 });
 
-export const authenticateSocket = async (
-  req: any,
-  socket: WebSocket,
-): Promise<{
-  _id: string;
-  displayName: string;
-  avatar: string | null | undefined;
-  email: string;
-} | null> => {
+export const authenticateSocket = async (socket: Socket) => {
   return new Promise((resolve) => {
-    sessionParser(req, {} as any, async (err) => {
+    sessionParser(socket.request as any, {} as any, async (err) => {
       if (err) {
-        socket.close();
+        socket.disconnect(true);
         return;
       }
 
-      const userId: string = (req as any).session?.passport?.user;
+      const userId: string = (socket.request as any).session?.passport?.user;
 
       if (!userId) return resolve(null);
       const user = await User.findById(userId);
