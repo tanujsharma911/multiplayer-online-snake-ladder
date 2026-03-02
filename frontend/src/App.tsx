@@ -17,6 +17,7 @@ function App() {
   const socket = useSocket();
 
   useEffect(() => {
+    console.log("Server:", import.meta.env.VITE_SERVER_URL);
     const fetchUserData = async () => {
       try {
         const data = await axios.get("/auth/me").then((res) => res.data);

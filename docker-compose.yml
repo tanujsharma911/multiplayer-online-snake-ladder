@@ -13,7 +13,7 @@ services:
       restart: unless-stopped
    client:
       build:
-        context: ./client
+        context: ./frontend
         args:
           VITE_SERVER_URL: ${VITE_SERVER_URL}
       container_name: snakes-ladders-client
@@ -26,5 +26,5 @@ services:
       restart: unless-stopped
 
 networks:
-  fullstack-net:
+  snakes-ladders-net:
     driver: bridge
