@@ -63,10 +63,10 @@ const Lobby = () => {
       }
     };
 
-    socket.addEventListener("message", handleMessage);
+    socket.on("message", handleMessage);
 
     return () => {
-      socket.removeEventListener("message", handleMessage);
+      socket.off("message", handleMessage);
       leaveGame();
     };
   }, [socket]);

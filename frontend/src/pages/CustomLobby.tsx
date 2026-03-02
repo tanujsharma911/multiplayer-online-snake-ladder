@@ -174,10 +174,10 @@ const CustomLobby = (props: { create?: boolean; join?: boolean }) => {
       }
     };
 
-    socket.addEventListener("message", handleMessages);
+    socket.on("message", handleMessages);
 
     return () => {
-      socket.removeEventListener("message", handleMessages);
+      socket.off("message", handleMessages);
     };
   }, [socket, user]);
 
