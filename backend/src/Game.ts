@@ -7,8 +7,10 @@ import {
   MOVE,
   GAME_UPDATE,
   SET_TURN,
+  OK,
 } from "./messages.js";
 import { Player, socketManager } from "./SocketManager.js";
+import type { GameResult } from "./types.js";
 import { labelToCoord } from "./utils.js";
 
 const playersColors = ["red", "green", "yellow", "sky"];
@@ -47,6 +49,7 @@ class Game {
     if (this.gameStarted || this.gameEnded) return;
 
     this.players.push(player);
+    socketManager.addPlayer(player, this.gameId);
 
     if (this.gameOf === this.players.length) {
       this.startGame();
@@ -108,7 +111,7 @@ class Game {
     }
   }
 
-  public startGame(): "error" | "ok" {
+  public startGame(): GameResult {
     const emptySlot = this.players.some((p) => p === null);
 
     if (emptySlot) {
@@ -125,7 +128,7 @@ class Game {
       playing: true,
     }));
 
-    return "ok";
+    return OK;
   }
 
   public endGame() {
@@ -135,10 +138,9 @@ class Game {
     this.gameStarted = false;
     this.canPlayerThrowDice = false;
     this.playingPlayers = [];
-    console.log("Game :: Game over", this.gameId);
   }
 
-  public async move(playerId: string): Promise<"ok" | "error" | "game_over"> {
+  public async move(playerId: string): Promise<GameResult> {
     if (
       this.playingPlayers.find((p) => p.playerId === playerId)?.playing ===
       false
@@ -223,7 +225,7 @@ class Game {
 
     this.canPlayerThrowDice = true;
 
-    return "ok";
+    return OK;
   }
 
   public advanceTurn() {
@@ -246,7 +248,7 @@ class Game {
     });
   }
 
-  public removePlayer(playerId: string): "ok" | "error" | "game_over" {
+  public removePlayer(playerId: string): GameResult {
     if (this.gameEnded) {
       console.log(RED_ASCII, "Game :: Removing player which is over");
       return ERROR;
@@ -287,7 +289,7 @@ class Game {
 
     this.sendUpdate();
 
-    return "ok";
+    return OK;
   }
 }
 

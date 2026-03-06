@@ -31,6 +31,29 @@ import { useUser } from "@/store/user";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, GlobeX } from "lucide-react";
 
+interface MessagePayload {
+  type: string;
+  players: ({
+    displayName: string;
+    email: string;
+    avatar?: string;
+    playerId: string;
+  } | null)[];
+  gameOf: number;
+  playingPlayers: {
+    playerId: string;
+    label: number;
+    color: string;
+    playing: boolean;
+  }[];
+  turnIndex: number;
+  gameStarted: boolean;
+  steps: number;
+  number: number;
+  gameId: string;
+  to: number;
+}
+
 const PlayerCard = (props: {
   players?: ({
     displayName: string;
@@ -175,25 +198,22 @@ const Room = () => {
 
     setDiceRolling(true);
     setIsPlayerMoving(true);
-    socket.send(JSON.stringify({ type: MOVE }));
+    socket.emit("message", { type: MOVE });
   };
 
   const handleLeave = () => {
     if (!socket) return;
 
-    socket.send(JSON.stringify({ type: LEAVE_GAME }));
+    socket.emit("message", { type: LEAVE_GAME });
   };
 
   useEffect(() => {
     const getRoomInfo = () => {
       if (!socket) return;
-      socket.send(JSON.stringify({ type: GET_GAME_UPDATE }));
+      socket.emit("message", { type: GET_GAME_UPDATE });
     };
-    const handleMessage = (payload: MessageEvent) => {
-      const msg = JSON.parse(payload.data);
-
-      console.log("Room ::", msg);
-
+    const handleMessage = (msg: MessageEvent & MessagePayload) => {
+      console.log(msg);
       switch (msg.type) {
         case GAME_UPDATE: {
           setPlayers(msg.players);

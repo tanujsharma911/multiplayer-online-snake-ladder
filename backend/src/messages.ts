@@ -11,3 +11,4 @@ export const GAME_OVER = "game_over";
 export const LEAVE_LOBBY = "leave_lobby";
 export const LEAVE_GAME = "leave_game";
 export const ERROR = "error";
+export const OK = "ok";

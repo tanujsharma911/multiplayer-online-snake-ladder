@@ -1,6 +1,7 @@
 import { RED_ASCII } from "./contants.js";
-import { ERROR, GAME_OVER } from "./messages.js";
+import { ERROR, GAME_OVER, OK } from "./messages.js";
 import type { Socket } from "socket.io";
+import type { GameResult } from "./types.js";
 
 interface PlayerType {
   playerId: string;
@@ -51,7 +52,7 @@ class SocketManager {
     players!.set(player.playerId, player);
   }
 
-  public removePlayer(playerId: string): string {
+  public removePlayer(playerId: string): GameResult {
     const gameId = this.playerId_gameId.get(playerId);
     if (!gameId) return ERROR;
 
@@ -71,7 +72,7 @@ class SocketManager {
       return GAME_OVER;
     }
 
-    return "ok";
+    return OK;
   }
 
   public removeGame(gameId: string) {
@@ -86,36 +87,57 @@ class SocketManager {
     });
   }
 
-  public broadcast(gameId: string, message: Record<any, any>) {
+  public broadcast(gameId: string, message: Record<string, unknown>) {
     if (!this.gameId_players.has(gameId)) {
-      console.log(RED_ASCII, "SocketManager :: GameId not exist", gameId);
+      console.log(
+        RED_ASCII,
+        "SocketManager :: broadcast :: GameId not exist",
+        gameId,
+      );
       return;
     }
 
     const players = this.gameId_players.get(gameId);
 
     if (!players) {
-      console.log(RED_ASCII, "SocketManager :: Game exists without players");
+      console.log(
+        RED_ASCII,
+        "SocketManager :: broadcast :: Game exists without players",
+      );
       return;
     }
 
     players.forEach((player, playerId) => {
       if (player.socket && player.socket.connected) {
-        player.socket.send(JSON.stringify(message));
+        player.socket.emit("message", message);
       }
     });
   }
 
-  public sendMessageTo(playerId: string, message: Record<any, any>) {
+  public sendMessageTo(playerId: string, message: Record<string, unknown>) {
     const gameId = this.playerId_gameId.get(playerId);
 
-    if (!gameId) return;
+    if (!gameId) {
+      console.log(
+        RED_ASCII,
+        "SocketManager :: sendMessageTo ::",
+        `PlayerId: ${playerId} or gameId: ${gameId} not exist`,
+      );
+      return;
+    }
 
     const player = this.gameId_players.get(gameId)?.get(playerId);
 
-    if (!player || !player.socket) return;
+    if (!player || !player.socket) {
+      console.log(
+        RED_ASCII,
+        "SocketManager :: sendMessageTo ::",
+        `PlayerId: ${playerId} or gameId: ${gameId} not exist`,
+      );
+      return;
+    }
 
-    player.socket.send(JSON.stringify(message));
+    player.socket?.emit("message", message);
   }
 }
 

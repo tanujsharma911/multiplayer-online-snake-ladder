@@ -11,6 +11,14 @@ import {
 import { useNavigate } from "react-router";
 import { Globe } from "lucide-react";
 
+interface MessagePayload {
+  type: string;
+  players: { displayName: string; email: string; avatar?: string }[];
+  gameOf: number;
+  gameStarted: boolean;
+  gameId: string;
+}
+
 const Lobby = () => {
   const navigate = useNavigate();
 
@@ -37,10 +45,8 @@ const Lobby = () => {
   useEffect(() => {
     if (!socket) return;
 
-    const handleMessage = (event: MessageEvent) => {
-      const msg = JSON.parse(event.data);
-
-      console.log("Lobby ::", msg);
+    const handleMessage = (msg: MessageEvent & MessagePayload) => {
+      console.log(msg);
 
       switch (msg.type) {
         case LOBBY_UPDATE:

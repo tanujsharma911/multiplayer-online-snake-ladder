@@ -3,7 +3,9 @@ import { useSocketStore } from "../store/socket";
 import {
   CREATE_ROOM,
   GAME_UPDATE,
+  GET_GAME_UPDATE,
   JOIN_ROOM,
+  LEAVE_LOBBY,
   LOBBY_UPDATE,
 } from "@/lib/messages";
 import { useEffect, useState } from "react";
@@ -11,6 +13,14 @@ import { useUser } from "@/store/user";
 import { useNavigate } from "react-router";
 import { Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
+
+interface MessagePayload {
+  type: string;
+  players: { displayName: string; email: string; avatar?: string }[];
+  gameOf: number;
+  gameStarted: boolean;
+  gameId: string;
+}
 
 const CreateGame = (props: { createGameOf: (gameOf: number) => void }) => {
   const { createGameOf } = props;
@@ -70,8 +80,9 @@ const Joined = (props: {
   players: { displayName: string; email: string; avatar?: string }[];
   gameId: string | null;
   gameOf: number | null;
+  handleGameLeave: () => void;
 }) => {
-  const { players, gameId, gameOf } = props;
+  const { players, gameId, gameOf, handleGameLeave } = props;
   return (
     <div className="bg-white p-6 border rounded-xl w-full max-w-md">
       <div className="flex items-center justify-between mb-4">
@@ -81,7 +92,9 @@ const Joined = (props: {
             <Globe size={18} /> Private
           </p>
         </div>
-        <Button variant={"destructive"}>Leave</Button>
+        <Button variant={"destructive"} onClick={handleGameLeave}>
+          Leave
+        </Button>
       </div>
 
       <ul className="space-y-3">
@@ -141,26 +154,32 @@ const CustomLobby = (props: { create?: boolean; join?: boolean }) => {
   const createGameOf = (gameOf: number) => {
     if (!socket) return;
 
-    socket.send(JSON.stringify({ type: CREATE_ROOM, gameOf: gameOf }));
+    socket.emit("message", { type: CREATE_ROOM, gameOf: gameOf });
   };
 
   const joinGame = (id: string) => {
     if (!socket) return;
 
-    socket.send(JSON.stringify({ type: JOIN_ROOM, gameId: id }));
+    socket.emit("message", { type: JOIN_ROOM, gameId: id });
+  };
 
-    console.log("CustomLobby :: joinGame", id);
+  const handleLeave = () => {
+    if (!socket) return;
+    socket.emit("message", { type: LEAVE_LOBBY, gameId: gameId! });
+    navigate("/");
   };
 
   useEffect(() => {
     if (!user.isLoggedIn) navigate("/login");
     if (!socket) return;
 
-    const handleMessages = (event: MessageEvent) => {
-      const msg = JSON.parse(event.data);
+    const getRoomInfo = () => {
+      if (!socket) return;
+      socket.emit("message", { type: GET_GAME_UPDATE });
+    };
 
-      console.log("CustomLobby ::", msg);
-
+    const handleMessages = (msg: MessageEvent & MessagePayload) => {
+      console.log("CustomLobby.tsx ::", msg);
       switch (msg.type) {
         case LOBBY_UPDATE:
           setGameJoined(true);
@@ -174,6 +193,8 @@ const CustomLobby = (props: { create?: boolean; join?: boolean }) => {
       }
     };
 
+    getRoomInfo();
+
     socket.on("message", handleMessages);
 
     return () => {
@@ -186,7 +207,12 @@ const CustomLobby = (props: { create?: boolean; join?: boolean }) => {
       {create && !gameJoined && <CreateGame createGameOf={createGameOf} />}
       {join && !gameJoined && <JoinGame joinGame={joinGame} />}
       {gameJoined && (
-        <Joined gameOf={gameOf} gameId={gameId} players={players} />
+        <Joined
+          gameOf={gameOf}
+          gameId={gameId}
+          players={players}
+          handleGameLeave={handleLeave}
+        />
       )}
     </div>
   );

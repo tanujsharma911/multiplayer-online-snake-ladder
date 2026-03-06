@@ -1,3 +1,4 @@
+import { GREEN_ASCII } from "@/lib/constants";
 import { useUser } from "@/store/user";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
@@ -13,6 +14,7 @@ export const useSocket = (): Socket | null => {
 
     const socket = io(WS_SERVER_URL, { withCredentials: true });
     socket.on("connect", () => {
+      console.log(GREEN_ASCII, `🔌 Connected to ${WS_SERVER_URL}`);
       setSocket(socket);
     });
     socket.on("disconnect", () => {

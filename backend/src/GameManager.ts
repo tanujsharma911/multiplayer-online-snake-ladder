@@ -34,11 +34,11 @@ export class GameManager {
   }
 
   public addPlayer(player: playerType, socket: Socket) {
-    const playerExist = this.players.find((ply) => ply.playerId === player._id);
+    const playerExist = this.players.find(
+      (ply) => ply.playerId === player._id.toString(),
+    );
 
     if (playerExist) {
-      // Reconnect Logic
-
       playerExist.socket = socket;
 
       const gameId = socketManager.getGameId(playerExist.playerId);
@@ -62,7 +62,7 @@ export class GameManager {
       // New player
       const playerInstance = new Player({
         displayName: player.displayName,
-        playerId: player._id,
+        playerId: player._id.toString(),
         avatar: player.avatar,
         socket: socket,
         email: player.email,
@@ -77,7 +77,6 @@ export class GameManager {
     const player = this.players.find((ply) => ply.playerId === playerId);
 
     if (!player) {
-      console.log(RED_ASCII, "GameManager :: Unknoun player disconnects");
       return;
     }
 
@@ -92,24 +91,20 @@ export class GameManager {
     );
 
     socketManager.removeGame(game.gameId);
-
-    console.log("👉 ", game.gameId, "Removed");
   }
 
   public async addHandler(player: Player) {
     if (!player.socket) return;
 
-    player.socket.on("message", (payload) => {
-      const msg = JSON.parse(payload.toString());
+    player.socket.on("message", (msg) => {
+      console.log(`🗣️  ${player.email} ::`, msg);
 
       // Player want to join
       if (msg.type === JOIN) {
-        console.log("👉 ", player.email, "want to join game of", msg.game_of);
-
         const joinedGame = socketManager.getGameId(player.playerId);
 
         if (joinedGame) {
-          console.log(RED_ASCII, "GameManager :: PLayer is already in game");
+          console.log(`GameManager :: Already joined game`, joinedGame);
           return;
         }
 
@@ -120,20 +115,18 @@ export class GameManager {
         if (!similarGame) {
           const gameInstance = new Game(msg.game_of);
 
-          console.log("👉 Created new game :: gameId", gameInstance.gameId);
-
-          socketManager.addPlayer(player, gameInstance.gameId);
           gameInstance.addPlayer(player);
 
           this.waitingGames.push(gameInstance);
+
+          console.log(`GameManager :: Created new game`, gameInstance.gameId);
         } else {
-          socketManager.addPlayer(player, similarGame.gameId);
+          similarGame.addPlayer(player);
+
           console.log(
-            "👉 Added to existing game :: gameId",
+            `GameManager :: Joined existing game`,
             similarGame.gameId,
           );
-
-          similarGame.addPlayer(player);
 
           if (similarGame.gameStarted) {
             this.waitingGames = this.waitingGames.filter(
@@ -142,7 +135,10 @@ export class GameManager {
 
             this.activeGames.push(similarGame);
 
-            console.log("👉 Game started :: gameId", similarGame.gameId);
+            console.log(
+              `GameManager :: existing game started`,
+              similarGame.gameId,
+            );
           }
         }
       }
@@ -160,8 +156,11 @@ export class GameManager {
         }
 
         game.move(player.playerId).then((status) => {
+          console.log(`GameManager :: Player Moved`);
+
           if (status === GAME_OVER) {
             this.removeGame(game);
+            console.log(`GameManager :: Game Over ${game.gameId}`);
           }
         });
       }
@@ -172,13 +171,29 @@ export class GameManager {
 
         const gameId = socketManager.getGameId(player.playerId);
 
+        if (!gameId) {
+          console.log(
+            `GameManager :: No game or lobby found for player`,
+            player.email,
+          );
+          return;
+        }
+
         const game =
           this.waitingGames.find((g) => g.gameId === gameId) ||
+          this.privateWaitingGames.find((g) => g.gameId === gameId) ||
           this.activeGames.find((g) => g.gameId === gameId);
 
-        if (game) {
-          game.sendUpdateTo(player.playerId);
+        if (!game) {
+          console.log(
+            RED_ASCII,
+            `GameManager :: gameId is present in sockectManager but no game found`,
+            gameId,
+          );
+          return;
         }
+
+        game.sendUpdateTo(player.playerId);
       }
 
       // Player want to leave lobby
@@ -191,6 +206,9 @@ export class GameManager {
 
         if (!game) {
           // Game maybe in Active game
+          console.log(
+            `GameManager :: Can't leave lobby, not in waiting or private waiting games`,
+          );
           return;
         }
 
@@ -200,10 +218,7 @@ export class GameManager {
 
         if (status === GAME_OVER) {
           this.removeGame(game);
-          console.log(`GameManager :: Game ${game.gameId} ended`);
         }
-
-        console.log(`👉 ${player.email} left lobby gameId: ${game.gameId}`);
       }
 
       // Player want to leave a active game
@@ -211,10 +226,6 @@ export class GameManager {
         const gameId = socketManager.getGameId(player.playerId);
 
         if (!gameId) {
-          console.log(
-            RED_ASCII,
-            "GameManager :: Player want to leave a game but that does not exist",
-          );
           return;
         }
 
@@ -237,7 +248,7 @@ export class GameManager {
           console.log(`GameManager :: Game ${game.gameId} ended`);
         }
 
-        console.log(`👉 ${player.email} left gameId: ${game.gameId}`);
+        console.log(`GameManager :: Player left gameId: ${game.gameId}`);
       }
 
       // Player wants to create a private game
@@ -246,20 +257,17 @@ export class GameManager {
 
         if (existingGameId) {
           console.log(
-            RED_ASCII,
-            "GameManager :: Player want to create private game but already in a game",
+            `GameManager :: addHandler :: Player already in game, Can't create private game`,
+            existingGameId,
           );
           return;
         }
 
         const privateGame = new Game(msg.gameOf);
 
-        this.privateWaitingGames.push(privateGame);
-
-        socketManager.addPlayer(player, privateGame.gameId);
         privateGame.addPlayer(player);
 
-        console.log(`👉 ${player.email} created gameId: ${privateGame.gameId}`);
+        this.privateWaitingGames.push(privateGame);
       }
 
       // Player wants to join a private game
@@ -268,8 +276,8 @@ export class GameManager {
 
         if (joinedExistingGameId) {
           console.log(
-            RED_ASCII,
-            "GameManager :: Player want to join private game but is already in a game",
+            `GameManager :: Already joined game`,
+            joinedExistingGameId,
           );
           return;
         }
@@ -280,8 +288,7 @@ export class GameManager {
 
         if (!privateGame) {
           console.log(
-            RED_ASCII,
-            "GameManager :: Private game not found",
+            `GameManager :: No private game found for gameId`,
             msg.gameId,
           );
           return;
@@ -290,12 +297,19 @@ export class GameManager {
         socketManager.addPlayer(player, privateGame.gameId);
         privateGame.addPlayer(player);
 
+        console.log(`GameManager :: Joined private game`, privateGame.gameId);
+
         if (privateGame.gameStarted) {
           this.privateWaitingGames = this.privateWaitingGames.filter(
             (g) => g.gameId !== privateGame.gameId,
           );
 
           this.activeGames.push(privateGame);
+
+          console.log(
+            `GameManager :: Private game started`,
+            privateGame.gameId,
+          );
         }
       }
     });

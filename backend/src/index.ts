@@ -50,7 +50,7 @@ connectDB().then(() => {
 
     gameManager.addPlayer(player, socket);
 
-    socket.on("disconnect", () => {
+    socket.on("close", () => {
       gameManager.disconnectPlayer(player._id);
     });
   });

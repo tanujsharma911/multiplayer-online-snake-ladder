@@ -25,7 +25,7 @@ export const initPassport = () => {
       {
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: `https://${process.env.SERVER_URL}/auth/google/callback`,
+        callbackURL: `${process.env.SERVER_URL}/auth/google/callback`,
         scope: ["openid", "profile", "email"],
       },
       async function verify(
