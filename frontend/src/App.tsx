@@ -72,7 +72,7 @@ function App() {
             >
               <img src="/logo.png" alt="Snake and ladder" width={80} />
             </Link>
-            <SidebarTrigger className="m-2 bg-zinc-100 h-full" />
+            <SidebarTrigger className="m-2 mr-5 bg-zinc-100 h-full" />
           </div>
         )}
         <Outlet />

@@ -40,7 +40,12 @@ const AppSidebar = () => {
           to={"/"}
           className="title-font text-2xl flex items-baseline justify-center gap-1 motion-preset-t"
         >
-          <img src="/logo.png" alt="Snake and ladder" width={200} />
+          <img
+            src="/logo.png"
+            alt="Snake and ladder"
+            width={200}
+            className="w-20 md:w-50"
+          />
         </Link>
       </SidebarHeader>
       <SidebarContent>
