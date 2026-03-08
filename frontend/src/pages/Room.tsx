@@ -29,7 +29,7 @@ import Dice from "@/components/ui/Dice";
 import { BOARD_DATA } from "@/lib/constants";
 import { useUser } from "@/store/user";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, GlobeX } from "lucide-react";
+import { GlobeX } from "lucide-react";
 
 interface MessagePayload {
   type: string;
@@ -272,16 +272,16 @@ const Room = () => {
 
   return (
     <div className="flex flex-col items-center mt-10 pb-10">
-      <div className="flex w-full px-10 mb-10">
+      <div className="flex w-full px-2 md:px-10 mb-10">
         <Button
           onClick={handleLeave}
           variant={"destructive"}
-          className="px-3 pr-4 py-2.5 font-sm"
+          className="font-sm"
         >
-          <ChevronLeft className="size-6" /> Leave
+          Leave
         </Button>
       </div>
-      <div>
+      <div className="w-full">
         {players.length >= 3 && (
           <div className="flex justify-between">
             <PlayerCard
@@ -312,7 +312,7 @@ const Room = () => {
         )}
 
         <Board
-          className="w-100 md:w-120 lg:w-140"
+          className="mx-2"
           positions={playingPlayers}
           boardData={BOARD_DATA}
         />

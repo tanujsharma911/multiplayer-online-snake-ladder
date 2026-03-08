@@ -97,8 +97,6 @@ export class GameManager {
     if (!player.socket) return;
 
     player.socket.on("message", (msg) => {
-      console.log(`🗣️  ${player.email} ::`, msg);
-
       // Player want to join
       if (msg.type === JOIN) {
         const joinedGame = socketManager.getGameId(player.playerId);
@@ -156,11 +154,8 @@ export class GameManager {
         }
 
         game.move(player.playerId).then((status) => {
-          console.log(`GameManager :: Player Moved`);
-
           if (status === GAME_OVER) {
             this.removeGame(game);
-            console.log(`GameManager :: Game Over ${game.gameId}`);
           }
         });
       }

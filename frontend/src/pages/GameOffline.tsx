@@ -18,7 +18,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router";
 
 interface positionsType {
@@ -260,16 +259,16 @@ const GameOffline = () => {
 
   return gameStart ? (
     <div className="flex flex-col items-center mt-10 pb-10">
-      <div className="flex w-full px-10 mb-10">
+      <div className="flex w-full px-2 md:px-10 mb-10">
         <Button
           onClick={() => navigate("/")}
           variant={"destructive"}
-          className="px-3 pr-4 py-2.5 font-sm"
+          className="font-sm"
         >
-          <ChevronLeft className="size-6" /> Leave
+          Leave
         </Button>
       </div>
-      <div>
+      <div className="w-full">
         {positions.length >= 3 && (
           <div className="flex justify-between">
             <PlayerCard
@@ -295,7 +294,7 @@ const GameOffline = () => {
           </div>
         )}
 
-        <Board className="w-140" positions={positions} boardData={BOARD_DATA} />
+        <Board className="mx-2" positions={positions} boardData={BOARD_DATA} />
 
         <div className="flex justify-between">
           <PlayerCard
@@ -334,12 +333,12 @@ const GameOffline = () => {
       </div>
     </div>
   ) : (
-    <div className="flex items-center justify-center flex-col gap-10 min-h-80">
+    <div className="flex items-center justify-center flex-col gap-10 min-h-80vh px-5 mt-10">
       <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
         Play Offline
       </h1>
       <div className="bg-white p-6 border rounded-xl flex flex-col items-center gap-6 w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center">
+        <h2 className="text-xl md:text-2xl font-semibold text-center">
           Select Number Of Players
         </h2>
 

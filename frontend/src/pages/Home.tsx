@@ -105,7 +105,7 @@ const Home = () => {
         description="Play with random"
         color="sky"
         image="play_online.png"
-        url={"/game/online"}
+        url={"/game/random"}
         handleClick={handleClick}
       />
 

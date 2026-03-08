@@ -76,7 +76,7 @@ const router = createBrowserRouter([
         element: <Documentation />,
       },
       {
-        path: "/:other",
+        path: "*",
         element: <NotFound />,
       },
     ],
