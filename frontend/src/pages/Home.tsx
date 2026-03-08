@@ -16,6 +16,31 @@ interface CardProps {
 const Card = (props: CardProps) => {
   const { userLoggedIn, label, description, color, image, url, handleClick } =
     props;
+
+  const colorStyles: Record<
+    string,
+    { bg700: string; bg500: string; text200: string }
+  > = {
+    sky: { bg700: "bg-sky-700", bg500: "bg-sky-500", text200: "text-sky-200" },
+    green: {
+      bg700: "bg-green-700",
+      bg500: "bg-green-500",
+      text200: "text-green-200",
+    },
+    orange: {
+      bg700: "bg-orange-700",
+      bg500: "bg-orange-500",
+      text200: "text-orange-200",
+    },
+    purple: {
+      bg700: "bg-purple-700",
+      bg500: "bg-purple-500",
+      text200: "text-purple-200",
+    },
+  };
+
+  const theme = colorStyles[color] || colorStyles.sky;
+
   return (
     <button
       className={cn("h-30 md:h-40 w-full relative group")}
@@ -24,13 +49,13 @@ const Card = (props: CardProps) => {
       <div
         className={cn(
           "absolute w-full h-full -skew-x-6 border-3 border-black transition group-hover:shadow-[6px_6px_0_rgba(0,0,0,0.3)]",
-          userLoggedIn ? `bg-${color}-700` : "bg-zinc-500",
+          userLoggedIn ? theme.bg700 : "bg-zinc-500",
         )}
       ></div>
       <div
         className={cn(
           "absolute w-[15%] h-full -skew-x-6 border-3 border-black",
-          userLoggedIn ? `bg-${color}-500` : "bg-zinc-200",
+          userLoggedIn ? theme.bg500 : "bg-zinc-200",
         )}
       ></div>
       <div className="absolute flex items-center inset-0 pl-3">
@@ -48,7 +73,7 @@ const Card = (props: CardProps) => {
         <p
           className={cn(
             "font-bold font-rubik text-left text-xl",
-            userLoggedIn ? `text-${color}-200` : "text-zinc-200",
+            userLoggedIn ? theme.text200 : "text-zinc-200",
           )}
         >
           {description}
