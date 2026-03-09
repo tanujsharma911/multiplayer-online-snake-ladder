@@ -32,6 +32,7 @@ class Game {
   public canPlayerThrowDice: boolean;
 
   public startedAt: Date = new Date(Date.now());
+  public turnTimer: NodeJS.Timeout | null = null;
 
   constructor(gameOf: number) {
     this.gameId = crypto.randomUUID().slice(0, 4);
@@ -111,10 +112,34 @@ class Game {
     }
   }
 
+  public startTimer() {
+    // Clear previous timer if exists
+    if (this.turnTimer) clearTimeout(this.turnTimer);
+
+    this.turnTimer = setTimeout(() => {
+      const playingPlayers = this.playingPlayers.filter(
+        (p) => p.playing,
+      ).length;
+
+      if (playingPlayers <= 2) {
+        this.endGame();
+        return;
+      }
+
+      this.removePlayer(this.playingPlayers[this.turnIndex]!.playerId);
+      this.advanceTurn();
+      this.canPlayerThrowDice = true;
+    }, 30 * 1000);
+  }
+
   public startGame(): GameResult {
     const emptySlot = this.players.some((p) => p === null);
 
     if (emptySlot) {
+      console.log(
+        RED_ASCII,
+        "Game :: startGame :: Starting game with empty slot",
+      );
       return ERROR;
     }
 
@@ -128,27 +153,32 @@ class Game {
       playing: true,
     }));
 
+    this.startTimer();
+
     return OK;
   }
 
   public endGame() {
     this.gameEnded = true;
+    this.turnTimer && clearTimeout(this.turnTimer);
     this.sendUpdate();
     this.players = [];
     this.gameStarted = false;
     this.canPlayerThrowDice = false;
     this.playingPlayers = [];
+    socketManager.removeGame(this.gameId);
   }
 
   public async move(playerId: string): Promise<GameResult> {
-    if (
-      this.playingPlayers.find((p) => p.playerId === playerId)?.playing ===
-      false
-    ) {
+    const currentTurnIndex = this.turnIndex;
+    const currentPlayer = this.playingPlayers.find(
+      (p) => p.playerId === playerId,
+    );
+    if (!currentPlayer || currentPlayer.playing === false) {
       console.log(RED_ASCII, "Game :: Non playing player is throwing dice");
       return ERROR;
     }
-    if (this.playingPlayers[this.turnIndex]!.playerId !== playerId) {
+    if (currentPlayer.playerId !== playerId) {
       console.log(RED_ASCII, "Game :: Wrong player movement");
       return ERROR;
     }
@@ -160,7 +190,7 @@ class Game {
     const gameId = socketManager.getGameId(playerId);
 
     if (!gameId) {
-      console.log(RED_ASCII, "Game :: Playing without gameId");
+      console.log(RED_ASCII, "Game :: move :: Playing without gameId");
       return ERROR;
     }
 
@@ -168,7 +198,22 @@ class Game {
 
     const diceNumber = Math.floor(Math.random() * 6) + 1;
 
+    const isStateValid = () => {
+      if (this.gameEnded) return false; // Catches if the array was cleared
+      if (this.turnIndex !== currentTurnIndex) return false; // Catches turn hijacks
+      if (!currentPlayer.playing) return false; // Catches disconnected players
+      return true;
+    };
+
     await new Promise((res) => setTimeout(res, 400));
+
+    if (!isStateValid()) {
+      console.log(
+        RED_ASCII,
+        "Game :: move :: Player left during dice animation",
+      );
+      return ERROR;
+    }
 
     socketManager.broadcast(gameId, {
       type: DICE_NUMBER,
@@ -179,39 +224,70 @@ class Game {
 
     await new Promise((res) => setTimeout(res, 400));
 
-    if (this.playingPlayers[this.turnIndex]!.label + diceNumber <= 100) {
-      this.playingPlayers[this.turnIndex]!.label += diceNumber;
+    if (!isStateValid()) {
+      console.log(
+        RED_ASCII,
+        "Game :: move :: Player left during dice animation",
+      );
+      return ERROR;
+    }
+
+    if (currentPlayer.label + diceNumber <= 100) {
+      currentPlayer.label += diceNumber;
 
       socketManager.broadcast(gameId, {
         type: MOVE,
         playerId,
         turnIndex: this.turnIndex,
-        to: this.playingPlayers[this.turnIndex]!.label,
+        to: currentPlayer.label,
         steps: diceNumber,
       });
 
       await new Promise((res) => setTimeout(res, diceNumber * 300)); // Because animation is playing at client side
 
-      const { x, y } = labelToCoord(this.playingPlayers[this.turnIndex]!.label);
+      if (!isStateValid()) {
+        console.log(
+          RED_ASCII,
+          "Game :: move :: Player left during dice animation",
+        );
+        return ERROR;
+      }
+
+      const { x, y } = labelToCoord(currentPlayer.label);
 
       if (BOARD[y]![x] !== -1) {
-        this.playingPlayers[this.turnIndex]!.label = BOARD[y]![x]!;
+        currentPlayer.label = BOARD[y]![x]!;
 
         await new Promise((res) => setTimeout(res, 300));
+
+        if (!isStateValid()) {
+          console.log(
+            RED_ASCII,
+            "Game :: move :: Player left during dice animation",
+          );
+          return ERROR;
+        }
 
         socketManager.broadcast(gameId, {
           type: MOVE,
           playerId,
           turnIndex: this.turnIndex,
-          to: this.playingPlayers[this.turnIndex]!.label,
+          to: currentPlayer.label,
         });
       }
     }
 
-    if (this.playingPlayers[this.turnIndex]!.label === 100)
-      this.playingPlayers[this.turnIndex]!.playing = false;
+    if (currentPlayer.label === 100) currentPlayer.playing = false;
 
     await new Promise((res) => setTimeout(res, 300));
+
+    if (!isStateValid()) {
+      console.log(
+        RED_ASCII,
+        "Game :: move :: Player left during dice animation",
+      );
+      return ERROR;
+    }
 
     const activePlayers = this.playingPlayers.filter((p) => p.playing).length;
 
@@ -235,11 +311,13 @@ class Game {
 
       flag++;
 
-      if (flag > 10) {
+      if (flag > this.playingPlayers.length + 1) {
         console.log(RED_ASCII, "Game :: While loop is running infinite times");
         break;
       }
     } while (this.playingPlayers[this.turnIndex]!.playing === false);
+
+    this.startTimer();
 
     socketManager.broadcast(this.gameId, {
       type: SET_TURN,

@@ -82,6 +82,7 @@ const PlayerCard = (props: {
       }
     };
     checkPlayed();
+
   }, [turnIndex]);
 
   return (
@@ -268,7 +269,7 @@ const GameOffline = () => {
           Leave
         </Button>
       </div>
-      <div className="w-full">
+      <div className="w-full max-w-xl">
         {positions.length >= 3 && (
           <div className="flex justify-between">
             <PlayerCard

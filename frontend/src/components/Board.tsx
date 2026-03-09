@@ -21,7 +21,7 @@ const Board = (props: BroadProps) => {
     <div
       id="board"
       className={cn(
-        "aspect-square relative border-2 border-zinc-900 grid grid-cols-10 grid-rows-10 select-none",
+        "aspect-square max-w-150 relative border-2 border-zinc-900 grid grid-cols-10 grid-rows-10 select-none",
         className,
       )}
     >

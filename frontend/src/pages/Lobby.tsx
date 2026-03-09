@@ -33,13 +33,13 @@ const Lobby = () => {
   const joinGame = (game_of: number) => {
     if (!socket) return;
 
-    socket.send(JSON.stringify({ type: JOIN, game_of: game_of }));
+    socket.emit("message", { type: JOIN, game_of: game_of });
   };
 
   const leaveGame = () => {
     if (!socket) return;
 
-    socket.send(JSON.stringify({ type: LEAVE_LOBBY }));
+    socket.emit("message", { type: LEAVE_LOBBY });
   };
 
   useEffect(() => {

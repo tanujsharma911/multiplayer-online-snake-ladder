@@ -54,6 +54,99 @@ interface MessagePayload {
   to: number;
 }
 
+const DecreasingPathTimer = ({
+  totalTime = 30,
+  isActive = false, // <-- Add this prop
+  className,
+  children,
+}: {
+  totalTime?: number;
+  isActive?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}) => {
+  const pathLength = 244;
+  const pathData =
+    "M33 1.5H15.5C7.76801 1.5 1.5 7.76801 1.5 15.5V51.5C1.5 59.232 7.76801 65.5 15.5 65.5H52C59.732 65.5 66 59.232 66 51.5V15.5C66 7.76801 59.732 1.5 52 1.5H35";
+
+  const [timeLeft, setTimeLeft] = useState(totalTime);
+
+  useEffect(() => {
+    // If it's not their turn, reset the ring to full and don't count down
+    if (!isActive) {
+      setTimeLeft(totalTime);
+      return;
+    }
+
+    // Start countdown ONLY if active
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 0.1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 0.1;
+      });
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, [totalTime, isActive]); // Re-run when turn changes
+
+  const percentage = timeLeft / totalTime;
+  const strokeDashoffset = pathLength * (1 - percentage);
+  const progressPercentage = percentage * 100;
+
+  // Grey out the ring completely if it's not their turn
+  const strokeColor = !isActive
+    ? "transparent"
+    : progressPercentage < 25
+      ? "#ef4444"
+      : "#FDC03B";
+
+  return (
+    <div style={{ position: "relative" }} className={className}>
+      <div
+        style={{
+          position: "absolute",
+          inset: "2px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}
+      >
+        {children}
+      </div>
+
+      <svg
+        viewBox="0 0 68 68"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="absolute inset-0 scale-110 w-full h-full"
+      >
+        <path
+          d={pathData}
+          stroke="#e5e7eb"
+          strokeWidth="3"
+          strokeLinecap="round"
+          opacity={isActive ? "0.5" : "0"} // Hide track if not active (optional)
+        />
+        <path
+          d={pathData}
+          stroke={strokeColor}
+          strokeWidth="3"
+          strokeLinecap="round"
+          style={{
+            strokeDasharray: pathLength,
+            strokeDashoffset: strokeDashoffset,
+            transition: "stroke-dashoffset 0.1s linear, stroke 0.3s ease",
+          }}
+        />
+      </svg>
+    </div>
+  );
+};
+
 const PlayerCard = (props: {
   players?: ({
     displayName: string;
@@ -94,6 +187,9 @@ const PlayerCard = (props: {
       (pos) => pos.playerId === players?.[playerIndex]?.playerId,
     )?.color || "gray";
 
+  // I REMOVED the redundant timeLeft state and setInterval from here!
+  // The DecreasingPathTimer handles it natively now.
+
   return (
     <div
       className={cn(
@@ -104,27 +200,28 @@ const PlayerCard = (props: {
       <div
         className={cn(
           "m-3 rounded-md",
-          turn && "ring-3 ring-offset-2  ring-yellow-500",
           turn && isCurrentUser && "animate-bounce",
         )}
       >
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="relative">
-              <img
-                src={
-                  players?.[playerIndex]?.avatar ||
-                  "https://api.dicebear.com/9.x/dylan/jpg"
-                }
-                referrerPolicy="no-referrer"
-                alt={players?.[playerIndex]?.displayName}
-                width={45}
-                height={45}
-                className={cn(
-                  "rounded-md",
-                  !players?.[playerIndex]?.playerId && "grayscale",
-                )}
-              />
+              {/* Pass the isActive prop here based on the turn variable */}
+              <DecreasingPathTimer className="w-12 h-12" isActive={turn}>
+                <img
+                  src={
+                    players?.[playerIndex]?.avatar ||
+                    "https://api.dicebear.com/9.x/dylan/jpg"
+                  }
+                  referrerPolicy="no-referrer"
+                  alt={players?.[playerIndex]?.displayName}
+                  className={cn(
+                    "rounded-md w-full h-full",
+                    !players?.[playerIndex]?.playerId && "grayscale",
+                  )}
+                />
+              </DecreasingPathTimer>
+
               {players?.[playerIndex]?.playerId ? (
                 <div
                   className={cn(
@@ -281,7 +378,7 @@ const Room = () => {
           Leave
         </Button>
       </div>
-      <div className="w-full">
+      <div className="w-full max-w-xl">
         {players.length >= 3 && (
           <div className="flex justify-between">
             <PlayerCard

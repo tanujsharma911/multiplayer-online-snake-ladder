@@ -171,6 +171,7 @@ export class GameManager {
             `GameManager :: No game or lobby found for player`,
             player.email,
           );
+          socketManager.sendMessageTo(player.playerId, { type: GAME_OVER });
           return;
         }
 
