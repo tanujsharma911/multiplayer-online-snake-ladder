@@ -30,25 +30,25 @@ interface positionsType {
 const playerData: positionsType[] = [
   {
     id: "1",
-    label: 90,
+    label: 1,
     className: "bg-red-400 border-red-800",
     playing: true,
   },
   {
     id: "2",
-    label: 90,
+    label: 1,
     className: "bg-green-400 border-green-800",
     playing: true,
   },
   {
     id: "3",
-    label: 90,
+    label: 1,
     className: "bg-sky-400 border-sky-800",
     playing: true,
   },
   {
     id: "4",
-    label: 90,
+    label: 1,
     className: "bg-yellow-400 border-yellow-800",
     playing: true,
   },
@@ -82,7 +82,6 @@ const PlayerCard = (props: {
       }
     };
     checkPlayed();
-
   }, [turnIndex]);
 
   return (
