@@ -148,7 +148,7 @@ class Game {
 
     this.playingPlayers = this.players.map((p, i) => ({
       playerId: p!.playerId,
-      label: 1,
+      label: 99,
       color: playersColors[i] || "purple",
       playing: true,
     }));
