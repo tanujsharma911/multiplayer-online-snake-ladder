@@ -201,7 +201,7 @@ class Game {
     const isStateValid = () => {
       if (this.gameEnded) return false; // Catches if the array was cleared
       if (this.turnIndex !== currentTurnIndex) return false; // Catches turn hijacks
-      if (!currentPlayer.playing) return false; // Catches disconnected players
+      if (!currentPlayer.playing && currentPlayer.label !== 100) return false; // Catches disconnected players
       return true;
     };
 

@@ -37,8 +37,10 @@ button:disabled {
     }
 }
 
-.animate-roll-dice {
-    animation: jumpAnimation 0.4s ease-in forwards;
+@layer utilities {
+    .animate-roll-dice {
+        animation: jumpAnimation 0.4s ease-in forwards;
+    }
 }
 
 @theme inline {
