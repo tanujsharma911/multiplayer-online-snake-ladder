@@ -8,11 +8,11 @@ A high-performance, full-stack multiplayer board game built with the **MERN stac
 
 ---
 
-## 🚀 Key Technical Highlights (The XYZ Metrics)
+## 🚀 Key Technical Highlights
 
 * **Scalability:** Optimized server-side event handling to support **50+ concurrent game rooms** with **<100ms latency**.
 * **Performance:** Reduced network overhead by **40%** using a delta-sync state update pattern via WebSockets.
-* **Reliability:** Achieved **99.9% uptime** on Hostinger VPS using **PM2** for process management and automated crash recovery.
+* **Reliability:** Achieved **99.9% uptime** on Hostinger VPS automated crash recovery.
 * **Security:** Engineered a **Zero-Vulnerability gameplay environment** by moving 100% of game logic (dice rolls, move validation) to the server.
 
 ---
@@ -31,12 +31,12 @@ A high-performance, full-stack multiplayer board game built with the **MERN stac
 
 | Layer | Technology |
 | :--- | :--- |
-| **Frontend** | React.js, Tailwind CSS, Lucide Icons |
+| **Frontend** | React.js, Tailwind CSS |
 | **Backend** | Node.js, Express.js |
 | **Real-time** | Socket.io (WebSockets) |
 | **Database** | MongoDB (Mongoose ODM) |
 | **Auth** | Passport.js (Google OAuth 2.0) |
-| **Deployment** | Hostinger VPS, Nginx, PM2 |
+| **Deployment** | Hostinger VPS, Nginx |
 
 ---
 
